@@ -1,0 +1,43 @@
+[2026-04-25 19:55:42] App started
+[2026-04-25 19:55:43] main started, page.platform=PagePlatform.WINDOWS, page.width=1264.0
+[2026-04-25 19:55:43] is_mobile=False
+[2026-04-25 19:56:50] App started
+[2026-04-25 19:56:51] main started, page.platform=PagePlatform.WINDOWS, page.width=1264.0
+[2026-04-25 19:56:51] is_mobile=False
+[2026-04-25 19:58:12] App started
+[2026-04-25 19:58:12] main started, page.platform=PagePlatform.WINDOWS, page.width=1264.0
+[2026-04-25 19:58:12] is_mobile=False
+[2026-04-25 19:58:14] show_logs called
+[2026-04-25 19:58:14] Log content length: 525
+[2026-04-25 19:58:14] Dialog opened
+[2026-04-25 20:01:55] App started
+[2026-04-25 20:01:56] main started, page.platform=PagePlatform.WINDOWS, page.width=1264.0
+[2026-04-25 20:01:56] is_mobile=False
+[2026-04-25 20:01:59] show_logs called
+[2026-04-25 20:01:59] Log content length: 808
+[2026-04-25 20:01:59] Dialog opened
+[2026-04-25 20:02:01] show_logs called
+[2026-04-25 20:02:01] Log content length: 929
+[2026-04-25 20:02:01] Dialog opened
+[2026-04-25 20:02:04] show_logs called
+[2026-04-25 20:02:04] Log content length: 1050
+[2026-04-25 20:02:04] Dialog opened
+[2026-04-25 20:02:06] show_logs called
+[2026-04-25 20:02:06] Log content length: 1172
+[2026-04-25 20:02:06] Dialog opened
+[2026-04-25 20:04:26] App started
+[2026-04-25 20:04:27] main started, page.platform=PagePlatform.WINDOWS, page.width=1264.0
+[2026-04-25 20:04:27] is_mobile=False
+[2026-04-25 20:04:29] show_logs called
+[2026-04-25 20:05:00] App started
+[2026-04-25 20:05:01] main started, page.platform=PagePlatform.WINDOWS, page.width=1264.0
+[2026-04-25 20:05:01] is_mobile=False
+[2026-04-25 20:05:03] show_logs called
+[2026-04-25 20:06:06] App started
+[2026-04-25 20:06:08] main started, page.platform=PagePlatform.WINDOWS, page.width=1264.0
+[2026-04-25 20:06:08] is_mobile=False
+[2026-04-25 20:06:10] show_logs called
+[2026-04-25 20:06:10] Logs page shown
+[2026-04-25 20:10:19] App started
+[2026-04-25 20:10:20] main started, page.platform=PagePlatform.WINDOWS, page.width=1264.0
+[2026-04-25 20:10:20] is_mobile=False
