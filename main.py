@@ -29,6 +29,29 @@ def get_db_path(page):
         return os.path.join(app_data, "data.db")
     return "data.db"
 
+def init_db():
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS products (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name TEXT,
+        size TEXT,
+        material TEXT,
+        price REAL,
+        sold REAL,
+        made REAL,
+        total REAL,
+        materials_cost REAL,
+        prod_cost REAL,
+        time REAL,
+        series TEXT,
+        date TEXT,
+        remainder REAL,
+        remainder_rub REAL,
+        markup REAL
+    )
+    """)
+    conn.commit()
+
 
 def main(page: Page):
     file_picker = FilePicker()
@@ -51,6 +74,7 @@ def main(page: Page):
         conn.close()
     conn = sqlite3.connect(db_path, check_same_thread=False)
     cursor = conn.cursor()
+    init_db()
 
     cursor.execute("""
     CREATE TABLE IF NOT EXISTS products (
@@ -294,7 +318,21 @@ def main(page: Page):
                 )
             )
 
-    def refresh():
+    def show_snack(text, color="green"):
+        page.snack_bar = ft.SnackBar(
+            content=ft.Row([
+                ft.Icon(ft.Icons.CHECK_CIRCLE, color="white"),
+                ft.Text(text, color="white")
+            ]),
+            bgcolor=color,
+            duration=2000,
+            open=True
+        )
+        page.update()
+
+
+    def refresh_all():
+        load_years()  # важно!
         load_data()
         update_balance()
         update_categories()
@@ -352,15 +390,14 @@ def main(page: Page):
 
                 conn = sqlite3.connect(db_path, check_same_thread=False)
                 cursor = conn.cursor()
+                init_db()
 
-                refresh()
+                refresh_all()
 
-                page.snack_bar = ft.SnackBar(ft.Text("Импорт выполнен"), open=True)
+                show_snack("📥 Импорт выполнен")
 
             except Exception as ex:
-                page.snack_bar = ft.SnackBar(ft.Text(f"Ошибка: {ex}"), open=True)
-
-            page.update()
+                show_snack(f"Ошибка: {ex}")
 
         page.run_task(do_pick)
 
@@ -433,9 +470,9 @@ def main(page: Page):
 
         page.overlay.extend([drawer_overlay, drawer_panel])
 
-        search_input.on_change = lambda e: refresh()
-        date_filter.on_change = lambda e: refresh()
-        year_dropdown.on_change = lambda e: refresh()
+        search_input.on_change = lambda e: refresh_all()
+        date_filter.on_change = lambda e: refresh_all()
+        year_dropdown.on_change = lambda e: refresh_all()
         load_years()
 
         if is_mobile:
@@ -491,12 +528,12 @@ def main(page: Page):
                 Row([search_input], alignment=MainAxisAlignment.CENTER),
                 Row([date_filter], alignment=MainAxisAlignment.CENTER),
                 Row([year_dropdown], alignment=MainAxisAlignment.CENTER),
-                Row([Button("Обновить", on_click=lambda _: refresh())], alignment=MainAxisAlignment.CENTER)
+                Row([Button("Обновить", on_click=lambda _: refresh_all())], alignment=MainAxisAlignment.CENTER)
             ], spacing=10)
         else:
             filter_column = Row([
                 search_input, date_filter, year_dropdown,
-                Button("Обновить", on_click=lambda _: refresh())
+                Button("Обновить", on_click=lambda _: refresh_all())
             ], spacing=10, alignment=MainAxisAlignment.CENTER)
 
         if is_mobile:
@@ -623,7 +660,7 @@ def main(page: Page):
                 show_main()
 
         page.on_keyboard_event = on_keyboard
-        refresh()
+        refresh_all()
 
     def show_create(e):
         page.clean()
