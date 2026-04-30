@@ -29,6 +29,13 @@ def get_db_path(page):
         return os.path.join(app_data, "data.db")
     return "data.db"
 
+
+def ensure_db_exists():
+    if not os.path.exists(db_path):
+        source = "data.db"
+        if os.path.exists(source):
+            shutil.copy(source, db_path)
+
 def init_db():
     cursor.execute("""
     CREATE TABLE IF NOT EXISTS products (
@@ -69,6 +76,7 @@ def main(page: Page):
     is_mobile = page.width < 600 or str(page.platform) in ["android", "ios"]
 
     db_path = get_db_path(page)
+    ensure_db_exists()
 
     if conn:
         conn.close()
@@ -150,13 +158,30 @@ def main(page: Page):
     income_text = Text(color="white")
     outcome_text = Text(color="white")
 
-    search_input = TextField(label="Поиск", width=200)
-    date_filter = TextField(label="Дата", width=150)
-    year_dropdown = Dropdown(label="Год", width=120)
+    search_input = TextField(
+        label="Поиск",
+        width=200,
+        color="white",
+        label_style=TextStyle(color="white")
+    )
+
+    date_filter = TextField(
+        label="Дата",
+        width=150,
+        color="white",
+        label_style=TextStyle(color="white")
+    )
+
+    year_dropdown = Dropdown(
+        label="Год",
+        width=120,
+        color="white",
+        label_style=TextStyle(color="white")
+    )
 
     table = DataTable(
         columns=[
-            DataColumn(Text(c)) for c in [
+            DataColumn(Text(c, color="white")) for c in [
                 "№", "Название", "Размер", "Материал", "Цена",
                 "Продано", "Изготовлено", "Ст-сть мат-ов",
                 "Изготовление", "Себестоимость", "Время",
@@ -168,11 +193,21 @@ def main(page: Page):
 
     categories_column = Column(scroll=ScrollMode.AUTO)
 
-    cb_sold = Checkbox(label="Продано", on_change=lambda e: calc_total())
-    cb_made = Checkbox(label="Изготовлено", on_change=lambda e: calc_total())
-    cb_cost = Checkbox(label="Себестоимость", on_change=lambda e: calc_total())
-    cb_remainder = Checkbox(label="Остаток", on_change=lambda e: calc_total())
-    cb_profit = Checkbox(label="Прибыль", on_change=lambda e: calc_total())
+    def make_cb(label):
+        return Checkbox(
+            label=label,
+            on_change=lambda e: calc_total(),
+            label_style=TextStyle(color="white"),
+            check_color="#ffffff",
+            active_color="#5f4bdb",
+            fill_color="#5f4bdb"
+        )
+
+    cb_sold = make_cb("Продано")
+    cb_made = make_cb("Изготовлено")
+    cb_cost = make_cb("Себестоимость")
+    cb_remainder = make_cb("Остаток")
+    cb_profit = make_cb("Прибыль")
 
     total_text = Text(color="white", size=16, weight=FontWeight.BOLD)
 
@@ -196,6 +231,9 @@ def main(page: Page):
     def load_data():
         table.rows.clear()
         row_ids.clear()
+
+        def t(v):
+            return Text(str(v), color="white")
 
         search = search_input.value.lower() if search_input.value else ""
         date_f = date_filter.value if date_filter.value else ""
@@ -232,22 +270,22 @@ def main(page: Page):
 
             table.rows.append(
                 DataRow(cells=[
-                    DataCell(Text(str(i))),
-                    DataCell(Text(str(row[1]))),
-                    DataCell(Text(str(row[2]))),
-                    DataCell(Text(str(row[3]))),
-                    DataCell(Text(str(row[4]))),
-                    DataCell(Text(str(row[5]))),
-                    DataCell(Text(str(row[6]))),
-                    DataCell(Text(str(row[8]))),
-                    DataCell(Text(str(round(work, 2)))),
-                    DataCell(Text(str(round(cost, 2)))),
-                    DataCell(Text(str(row[10]))),
-                    DataCell(Text(str(row[11]))),
-                    DataCell(Text(str(row[12]))),
-                    DataCell(Text(str(round(remainder, 2)))),
-                    DataCell(Text(str(round(profit, 2)))),
-                    DataCell(Text(str(round(markup, 2))))
+                    DataCell(t(i)),
+                    DataCell(t(row[1])),
+                    DataCell(t(row[2])),
+                    DataCell(t(row[3])),
+                    DataCell(t(row[4])),
+                    DataCell(t(row[5])),
+                    DataCell(t(row[6])),
+                    DataCell(t(row[8])),
+                    DataCell(t(round(work, 2))),
+                    DataCell(t(round(cost, 2))),
+                    DataCell(t(row[10])),
+                    DataCell(t(row[11])),
+                    DataCell(t(row[12])),
+                    DataCell(t(round(remainder, 2))),
+                    DataCell(t(round(profit, 2))),
+                    DataCell(t(round(markup, 2))),
                 ])
             )
 
@@ -667,21 +705,29 @@ def main(page: Page):
         tf_width = None if is_mobile else 200
 
         def build_form(values=None):
-            name = TextField(label="Название", value=values[0] if values else "", width=tf_width)
-            size = TextField(label="Размер", value=values[1] if values else "", width=tf_width)
-            material = TextField(label="Материал", value=values[2] if values else "", width=tf_width)
-            price = TextField(label="Цена", value=values[3] if values else "", width=tf_width)
-            sold = TextField(label="Продано", value=values[4] if values else "", width=tf_width)
-            made = TextField(label="Изготовлено", value=values[5] if values else "", width=tf_width)
-            mat_cost = TextField(label="Ст-сть мат-ов", value=values[6] if values else "", width=tf_width)
-            time = TextField(label="Время", value=values[7] if values else "", width=tf_width)
-            series = TextField(label="Серия", value=values[8] if values else "", width=tf_width)
-            date = TextField(label="Дата", value=values[9] if values else "", width=tf_width)
-            cost = TextField(label="Себестоимость", read_only=True)
-            work = TextField(label="Изготовление", read_only=True)
-            remainder = TextField(label="Остаток", read_only=True)
-            profit = TextField(label="Прибыль", read_only=True)
-            markup = TextField(label="Наценка %", read_only=True)
+            tf_style = dict(
+                color="white",
+                label_style=TextStyle(color="white"),
+                border_color="black",
+                focused_border_color="black",
+                cursor_color="white",
+                filled=False,
+            )
+            name = TextField(label="Название", value=values[0] if values else "", width=tf_width, **tf_style)
+            size = TextField(label="Размер", value=values[1] if values else "", width=tf_width, **tf_style)
+            material = TextField(label="Материал", value=values[2] if values else "", width=tf_width, **tf_style)
+            price = TextField(label="Цена", value=values[3] if values else "", width=tf_width, **tf_style)
+            sold = TextField(label="Продано", value=values[4] if values else "", width=tf_width, **tf_style)
+            made = TextField(label="Изготовлено", value=values[5] if values else "", width=tf_width, **tf_style)
+            mat_cost = TextField(label="Ст-сть мат-ов", value=values[6] if values else "", width=tf_width, **tf_style)
+            time = TextField(label="Время", value=values[7] if values else "", width=tf_width, **tf_style)
+            series = TextField(label="Серия", value=values[8] if values else "", width=tf_width, **tf_style)
+            date = TextField(label="Дата", value=values[9] if values else "", width=tf_width, **tf_style)
+            cost = TextField(label="Себестоимость", read_only=True, **tf_style)
+            work = TextField(label="Изготовление", read_only=True, **tf_style)
+            remainder = TextField(label="Остаток", read_only=True, **tf_style)
+            profit = TextField(label="Прибыль", read_only=True, **tf_style)
+            markup = TextField(label="Наценка %", read_only=True, **tf_style)
 
             def calc(e=None):
                 s_val = to_float(sold.value)
@@ -715,87 +761,245 @@ def main(page: Page):
             conn.commit()
             show_main()
 
-        page.add(Column([
-            Text("Добавить", size=25, color="white"),
-            *fields[:10],
-            Divider(),
-            Text("Расчёты", color="white"),
-            *fields[10:],
-            Row([
-                Button("Сохранить", on_click=save),
-                Button("Назад", on_click=lambda _: show_main())
-            ])
-        ], scroll=ScrollMode.AUTO))
+        form_fields = Column([
+            Row([fields[0], fields[1]], wrap=True, spacing=10),
+            Row([fields[2], fields[3]], wrap=True, spacing=10),
+            Row([fields[4], fields[5]], wrap=True, spacing=10),
+            Row([fields[6], fields[7]], wrap=True, spacing=10),
+            Row([fields[8], fields[9]], wrap=True, spacing=10),
+        ], spacing=10)
+
+        calc_fields = Column([
+            Row([fields[10], fields[11]], wrap=True, spacing=10),
+            Row([fields[12], fields[13]], wrap=True, spacing=10),
+            Row([fields[14]], wrap=True, spacing=10),
+        ], spacing=10)
+
+        form_ui = Container(
+            padding=20,
+            bgcolor="#2a2f77",  # 👈 единый голубой фон
+            border_radius=20,
+            content=Column([
+                Text("Добавить", size=25, color="white"),
+
+                form_fields,
+
+                Divider(color="white24"),
+
+                Text("Расчёты", color="white"),
+
+                calc_fields,
+
+                Row([
+                    Button("Сохранить", on_click=save),
+                    Button("Назад", on_click=lambda _: show_main())
+                ], alignment=MainAxisAlignment.CENTER, spacing=10)
+            ],
+                horizontal_alignment=CrossAxisAlignment.CENTER,
+                spacing=15)
+        )
+
+        page.add(
+            Container(
+                alignment=Alignment(0, 0),
+                expand=True,
+                content=ListView(
+                    [
+                        Container(
+                            width=500 if not is_mobile else None,
+                            padding=20,
+                            bgcolor="#041955",
+                            border_radius=20,
+                            content=form_ui
+                        )
+                    ]
+                )
+            )
+        )
 
     def show_edit(e):
         page.clean()
         tf_width = None if is_mobile else 200
-        inp = TextField(label="№ строки", width=tf_width)
 
+        inp = TextField(
+            label="№ строки",
+            width=tf_width,
+            color="white",
+            label_style=TextStyle(color="white")
+        )
+
+        # ✅ ДОБАВИЛИ build_form
         def build_form(values=None):
-            name = TextField(label="Название", value=values[0] if values else "", width=tf_width)
-            size = TextField(label="Размер", value=values[1] if values else "", width=tf_width)
-            material = TextField(label="Материал", value=values[2] if values else "", width=tf_width)
-            price = TextField(label="Цена", value=values[3] if values else "", width=tf_width)
-            sold = TextField(label="Продано", value=values[4] if values else "", width=tf_width)
-            made = TextField(label="Изготовлено", value=values[5] if values else "", width=tf_width)
-            mat_cost = TextField(label="Ст-сть мат-ов", value=values[6] if values else "", width=tf_width)
-            time = TextField(label="Время", value=values[7] if values else "", width=tf_width)
-            series = TextField(label="Серия", value=values[8] if values else "", width=tf_width)
-            date = TextField(label="Дата", value=values[9] if values else "", width=tf_width)
-            cost = TextField(label="Себестоимость", read_only=True)
-            work = TextField(label="Изготовление", read_only=True)
-            remainder = TextField(label="Остаток", read_only=True)
-            profit = TextField(label="Прибыль", read_only=True)
-            markup = TextField(label="Наценка %", read_only=True)
-            return (name, size, material, price, sold, made, mat_cost, time, series, date, cost, work, remainder, profit, markup)
+            tf_style = dict(
+                color="white",
+                label_style=TextStyle(color="white"),
+                border_color="black",
+                focused_border_color="black",
+                cursor_color="white",
+                filled=False,
+            )
+
+            name = TextField(label="Название", value=values[0] if values else "", width=tf_width, **tf_style)
+            size = TextField(label="Размер", value=values[1] if values else "", width=tf_width, **tf_style)
+            material = TextField(label="Материал", value=values[2] if values else "", width=tf_width, **tf_style)
+            price = TextField(label="Цена", value=values[3] if values else "", width=tf_width, **tf_style)
+            sold = TextField(label="Продано", value=values[4] if values else "", width=tf_width, **tf_style)
+            made = TextField(label="Изготовлено", value=values[5] if values else "", width=tf_width, **tf_style)
+            mat_cost = TextField(label="Ст-сть мат-ов", value=values[6] if values else "", width=tf_width, **tf_style)
+            time = TextField(label="Время", value=values[7] if values else "", width=tf_width, **tf_style)
+            series = TextField(label="Серия", value=values[8] if values else "", width=tf_width, **tf_style)
+            date = TextField(label="Дата", value=values[9] if values else "", width=tf_width, **tf_style)
+
+            cost = TextField(label="Себестоимость", read_only=True, **tf_style)
+            work = TextField(label="Изготовление", read_only=True, **tf_style)
+            remainder = TextField(label="Остаток", read_only=True, **tf_style)
+            profit = TextField(label="Прибыль", read_only=True, **tf_style)
+            markup = TextField(label="Наценка %", read_only=True, **tf_style)
+
+            def calc(e=None):
+                c, w, r, p, mu = calc_values(
+                    price.value, sold.value, made.value, mat_cost.value, time.value
+                )
+
+                cost.value = str(round(c, 2))
+                work.value = str(round(w, 2))
+                remainder.value = str(round(r, 2))
+                profit.value = str(round(p, 2))
+                markup.value = str(round(mu, 2))
+
+                page.update()
+
+            for f in [price, sold, made, mat_cost, time]:
+                f.on_change = calc
+
+            calc()
+
+            return (
+                name, size, material, price, sold, made,
+                mat_cost, time, series, date,
+                cost, work, remainder, profit, markup
+            )
 
         def load(_):
             try:
                 real_id = row_ids[int(inp.value) - 1]
                 cursor.execute("SELECT * FROM products WHERE id=?", (real_id,))
                 row = cursor.fetchone()
-                values = [row[1], row[2], row[3], row[4], row[5], row[6], row[8], row[10], row[11], row[12]]
+
+                values = [
+                    row[1], row[2], row[3], row[4], row[5],
+                    row[6], row[8], row[10], row[11], row[12]
+                ]
+
                 fields = build_form(values)
 
                 def save(_):
                     cursor.execute("""
-                    UPDATE products SET
-                    name=?, size=?, material=?, price=?, sold=?, made=?,
-                    materials_cost=?, time=?, series=?, date=?
-                    WHERE id=?
-                    """, (fields[0].value, fields[1].value, fields[2].value, fields[3].value,
-                          fields[4].value, fields[5].value, fields[6].value, fields[7].value,
-                          fields[8].value, fields[9].value, real_id))
+                                   UPDATE products
+                                   SET name=?,
+                                       size=?,
+                                       material=?,
+                                       price=?,
+                                       sold=?,
+                                       made=?,
+                                       materials_cost=?,
+                                       time=?,
+                                       series=?,
+                                       date=?
+                                   WHERE id = ?
+                                   """, (
+                                       fields[0].value, fields[1].value, fields[2].value,
+                                       fields[3].value, fields[4].value, fields[5].value,
+                                       fields[6].value, fields[7].value,
+                                       fields[8].value, fields[9].value,
+                                       real_id
+                                   ))
                     conn.commit()
                     show_main()
 
+                form_ui = Container(
+                    padding=20,
+                    bgcolor="#2a2f77",
+                    border_radius=20,
+                    content=Column([
+                        Text("Редактировать", size=25, color="white"),
+
+                        inp,
+                        Button("Загрузить", on_click=load),
+
+                        Divider(color="white24"),
+
+                        Column(fields[:10], spacing=10),
+
+                        Divider(color="white24"),
+
+                        Column(fields[10:], spacing=10),
+
+                        Row([
+                            Button("Сохранить", on_click=save),
+                            Button("Назад", on_click=lambda _: show_main())
+                        ], alignment=MainAxisAlignment.CENTER, spacing=10)
+                    ],
+                        spacing=15,
+                        horizontal_alignment=CrossAxisAlignment.CENTER
+                    )
+                )
+
                 page.clean()
-                page.add(Column([
-                    Text("Редактировать", size=25, color="white"),
-                    *fields[:10],
-                    Divider(),
-                    Text("Расчёты", color="white"),
-                    *fields[10:],
-                    Row([
-                        Button("Сохранить", on_click=save),
-                        Button("Назад", on_click=lambda _: show_main())
-                    ])
-                ], scroll=ScrollMode.AUTO))
+                page.add(
+                    Container(
+                        alignment=Alignment(0, 0),
+                        expand=True,
+                        bgcolor="#041955",
+                        content=ListView([
+                            Container(
+                                width=500 if not is_mobile else None,
+                                content=form_ui
+                            )
+                        ])
+                    )
+                )
+
             except:
                 page.snack_bar = SnackBar(Text("Ошибка"), open=True)
                 page.update()
 
-        page.add(Column([
-            inp,
-            Button("Загрузить", on_click=load),
-            Button("Назад", on_click=lambda _: show_main())
-        ]))
+        page.add(
+            Container(
+                alignment=Alignment(0, 0),
+                expand=True,
+                content=ListView([
+                    Container(
+                        width=500 if not is_mobile else None,
+                        padding=20,
+                        bgcolor="#2a2f77",
+                        border_radius=20,
+                        content=Column([
+                            Text("Редактировать", size=25, color="white"),
+
+                            inp,
+                            Button("Загрузить", on_click=load),
+
+                            Row([
+                                Button("Назад", on_click=lambda _: show_main())
+                            ], alignment=MainAxisAlignment.CENTER)
+                        ],
+                            spacing=15,
+                            horizontal_alignment=CrossAxisAlignment.CENTER)
+                    )
+                ])
+            )
+        )
 
     def show_delete(e):
         page.clean()
         tf_width = None if is_mobile else 200
-        inp = TextField(label="№ строки", width=tf_width)
+        inp = TextField(
+            label="№ строки",
+            width=tf_width,
+            color="white",
+            label_style=TextStyle(color="white")
+        )
 
         def delete_row(_):
             try:
@@ -807,13 +1011,37 @@ def main(page: Page):
                 page.snack_bar = SnackBar(Text("Ошибка"), open=True)
                 page.update()
 
-        page.add(Column([
-            inp,
-            Row([
-                Button("Удалить", on_click=delete_row),
-                Button("Назад", on_click=lambda _: show_main())
-            ], wrap=is_mobile)
-        ]))
+        page.add(
+            Container(
+                alignment=Alignment(0, 0),
+                expand=True,
+                content=ListView([
+                    Container(
+                        width=500 if not is_mobile else None,
+                        padding=20,
+                        bgcolor="#2a2f77",
+                        border_radius=20,
+                        content=Column([
+                            Text("Удалить", size=25, color="white"),
+
+                            inp,
+
+                            Row([
+                                Button(
+                                    "Удалить",
+                                    on_click=delete_row,
+                                    bgcolor="#e53935",
+                                    color="white"
+                                ),
+                                Button("Назад", on_click=lambda _: show_main())
+                            ], alignment=MainAxisAlignment.CENTER, spacing=10)
+                        ],
+                            spacing=15,
+                            horizontal_alignment=CrossAxisAlignment.CENTER)
+                    )
+                ])
+            )
+        )
 
     show_main()
 
